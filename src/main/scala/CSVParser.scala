@@ -1,8 +1,8 @@
-import java.io.{StringReader, BufferedWriter, OutputStreamWriter, FileOutputStream}
+import java.io.{BufferedWriter, FileOutputStream, OutputStreamWriter, StringReader}
 
 import au.com.bytecode.opencsv.CSVReader
 
-import scala.io.Source.fromFile
+import scala.io.Source._
 
 object CSVParser {
 
@@ -33,6 +33,22 @@ object CSVParser {
         val firstSourceMapMinusSecondSourceMap = firstSourceMap -- secondSourceMap.map(_._1)
 
         mapToCSV(pathOutputCSV, firstSourceMapMinusSecondSourceMap, encodingCSV)
+
+      // Get from the first csv the rows with a key existing in the second csv
+      case "csvintersectcsv" =>
+        // args(5): Path second input CSV
+        // args(6): Key position first input CSV
+        // args(7): Key position second input CSV
+        val pathSecondInputCSV = args(5)
+        val keyPositionFirstInputCSV = args(6).toInt
+        val keyPositionSecondInputCSV = args(7).toInt
+
+        val firstSourceMap = csvToMap(pathInputCSV, keyPositionFirstInputCSV, csvSeparator, encodingCSV)
+        val secondSourceMap = csvToMap(pathSecondInputCSV, keyPositionSecondInputCSV, csvSeparator, encodingCSV)
+        val firstSourceMapIntersectSecondSourceMap = firstSourceMap.filterKeys(secondSourceMap.keySet)
+
+        mapToCSV(pathOutputCSV, firstSourceMapIntersectSecondSourceMap, encodingCSV)
+
       case _ =>
     }
   }
@@ -59,7 +75,7 @@ object CSVParser {
   }
 
   def mapToCSV(filePath: String, map: Map[String, String], encoding: String): Unit = {
-    val csv = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath), encoding));
+    val csv = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath), encoding))
     map.foreach(line => csv.write(line._2 + "\n"))
     csv.close
   }
