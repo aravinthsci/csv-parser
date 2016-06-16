@@ -15,7 +15,7 @@ path_second_input_csv
 key_position_first_input_csv
 key_position_second_input_csv
 
-- *csv intersect csv:* remove from the first CSV the rows with a key existing in the second CSV.
+- *csv intersect csv:* get from the first CSV the rows with a key existing in the second CSV.
 Execution parameters:
 csvintersect
 csv_separator
