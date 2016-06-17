@@ -49,6 +49,13 @@ object CSVParser {
 
         mapToCSV(pathOutputCSV, firstSourceMapIntersectSecondSourceMap, encodingCSV)
 
+      // Get a single column
+      case "getcolumn" =>
+        // args(5): Position of the column
+        val columnPosition = args(5).toInt
+
+        csvColumnToFile(pathInputCSV, pathOutputCSV, columnPosition, csvSeparator, encodingCSV)
+
       case _ =>
     }
   }
@@ -78,5 +85,20 @@ object CSVParser {
     val csv = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath), encoding))
     map.foreach(line => csv.write(line._2 + "\n"))
     csv.close
+  }
+
+  def csvColumnToFile(fileInPath: String, fileOutPath: String, columnPosition: Int, csvSeparator: Char, encoding: String): Unit = {
+    val fileIn = fromFile(fileInPath)(encoding)
+    val fileOut = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileOutPath), encoding))
+    fileIn.getLines.foreach(line => {
+      try {
+        val lineParsed = new CSVReader(new StringReader(line), csvSeparator).readNext
+        fileOut.write(lineParsed(columnPosition - 1) + "\n")
+      } catch {
+        case e: Exception =>
+      }
+    })
+    fileIn.close
+    fileOut.close
   }
 }
