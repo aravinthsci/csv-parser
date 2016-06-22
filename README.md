@@ -37,7 +37,7 @@ column_position
 
 - *add column:* add a column to the CSV.
 Execution parameters:
-getcolumn
+addcolumn
 csv_separator
 path_input_csv
 path_output_csv
