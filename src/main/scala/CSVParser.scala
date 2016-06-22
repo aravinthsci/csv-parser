@@ -56,6 +56,15 @@ object CSVParser {
 
         csvColumnToFile(pathInputCSV, pathOutputCSV, columnPosition, csvSeparator, encodingCSV)
 
+      // Add a column
+      case "addcolumn" =>
+        // args(5): Position of the new column
+        // args(6): Value of the new column
+        val newColumnPosition = args(5).toInt
+        val newColumnValue = args(6)
+
+        csvWithNewColumnToFile(pathInputCSV, pathOutputCSV, newColumnPosition, newColumnValue, csvSeparator, encodingCSV)
+
       case _ =>
     }
   }
@@ -94,6 +103,29 @@ object CSVParser {
       try {
         val lineParsed = new CSVReader(new StringReader(line), csvSeparator).readNext
         fileOut.write(lineParsed(columnPosition - 1) + "\n")
+      } catch {
+        case e: Exception =>
+      }
+    })
+    fileIn.close
+    fileOut.close
+  }
+
+  def csvWithNewColumnToFile(fileInPath: String, fileOutPath: String, newColumnPosition: Int, newColumnValue: String, csvSeparator: Char, encoding: String): Unit = {
+    val fileIn = fromFile(fileInPath)(encoding)
+    val fileOut = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileOutPath), encoding))
+    fileIn.getLines.foreach(line => {
+      try {
+        var lineParsed = new CSVReader(new StringReader(line), csvSeparator).readNext
+        var idx = lineParsed.size
+        while(idx >= newColumnPosition) {
+          if(idx == lineParsed.size) lineParsed = lineParsed :+ lineParsed(idx - 1)
+          else lineParsed(idx) = lineParsed(idx - 1)
+          idx -= 1
+        }
+        if(idx == lineParsed.size) lineParsed = lineParsed :+ newColumnValue
+        else lineParsed(idx) = newColumnValue
+        fileOut.write(lineParsed.mkString(csvSeparator.toString) + "\n")
       } catch {
         case e: Exception =>
       }

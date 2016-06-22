@@ -34,3 +34,13 @@ path_input_csv
 path_output_csv
 encoding_of_input_and_output_csv
 column_position
+
+- *add column:* add a column to the CSV.
+Execution parameters:
+getcolumn
+csv_separator
+path_input_csv
+path_output_csv
+encoding_of_input_and_output_csv
+new_column_position
+new_column_value
