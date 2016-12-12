@@ -20,6 +20,7 @@ object CSVParser {
 
     operation match {
       // Remove from the first csv the rows with a key existing in the second csv
+      // The rows with duplicated keys are automatically cleared by the use of a Map object
       case "csvminuscsv" =>
         // args(5): Path second input CSV
         // args(6): Key position first input CSV
@@ -35,6 +36,7 @@ object CSVParser {
         mapToCSV(pathOutputCSV, firstSourceMapMinusSecondSourceMap, encodingCSV)
 
       // Get from the first csv the rows with a key existing in the second csv
+      // The rows with duplicated keys are automatically cleared by the use of a Map object
       case "csvintersectcsv" =>
         // args(5): Path second input CSV
         // args(6): Key position first input CSV
@@ -64,6 +66,18 @@ object CSVParser {
         val newColumnValue = args(6)
 
         csvWithNewColumnToFile(pathInputCSV, pathOutputCSV, newColumnPosition, newColumnValue, csvSeparator, encodingCSV)
+
+      // Get a single column grouped and sorted by a count
+      case "groupcolumn" =>
+        // args(5): Position of the column
+        val columnPosition = args(5).toInt
+
+        val columnList = csvColumnToList(pathInputCSV, columnPosition, csvSeparator, encodingCSV)
+        val columnListGroupedSorted = columnList.groupBy(line => line).mapValues(_.size).toList.sortWith(_._2 > _._2)
+          // Prepare for the listToFile function
+          .map(line => (line._1 + csvSeparator.toString + line._2.toString))
+
+        listToFile(pathOutputCSV, columnListGroupedSorted, encodingCSV)
 
       case _ =>
     }
@@ -132,5 +146,29 @@ object CSVParser {
     })
     fileIn.close
     fileOut.close
+  }
+
+  def csvColumnToList(filePath: String, columnPosition: Int, csvSeparator: Char, encoding: String): List[String] = {
+    val file = fromFile(filePath)(encoding)
+    val list = file.getLines
+      .map(line => {
+        try {
+          val lineParsed = new CSVReader(new StringReader(line), csvSeparator).readNext
+          lineParsed(columnPosition - 1)
+        } catch {
+          case e: Exception =>
+            null
+        }
+      })
+      .filter(_ != null)
+      .toList
+    file.close
+    list
+  }
+
+  def listToFile(filePath: String, list: List[String], encoding: String): Unit = {
+    val file = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath), encoding))
+    list.foreach(line => file.write(line + "\n"))
+    file.close
   }
 }
